@@ -7,41 +7,41 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModelProvider
 import com.example.wificonnectdemo.ui.theme.WifiConnectDemoTheme
 
+private const val TAG = "WifiConnectDemo"
+
 class MainActivity : ComponentActivity() {
+    private lateinit var wifiViewModel: WifiViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val factory = WifiViewModelFactory(applicationContext)
+        wifiViewModel = ViewModelProvider(this, factory)[WifiViewModel::class.java]
+
         setContent {
             WifiConnectDemoTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                    WifiConnectDemoScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        wifiViewModel = wifiViewModel
                     )
                 }
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    override fun onStart() {
+        super.onStart()
+        wifiViewModel.startListeningWifiState()
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    WifiConnectDemoTheme {
-        Greeting("Android")
+    override fun onStop() {
+        super.onStop()
+        wifiViewModel.stopListeningWifiState()
     }
 }
