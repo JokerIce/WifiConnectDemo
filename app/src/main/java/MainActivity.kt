@@ -9,9 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
+import com.example.wificonnectdemo.WifiConnectDemoScreen
 import com.example.wificonnectdemo.ui.theme.WifiConnectDemoTheme
-
-private const val TAG = "WifiConnectDemo"
+import com.example.wificonnectdemo.viewmodel.WifiViewModel
+import com.example.wificonnectdemo.viewmodel.WifiViewModelFactory
 
 class MainActivity : ComponentActivity() {
     private lateinit var wifiViewModel: WifiViewModel
@@ -33,15 +34,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        wifiViewModel.startListeningWifiState()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        wifiViewModel.stopListeningWifiState()
     }
 }

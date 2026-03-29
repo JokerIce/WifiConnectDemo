@@ -1,8 +1,8 @@
 package com.example.wificonnectdemo
 
+import com.example.wificonnectdemo.viewmodel.WifiViewModel
 import android.Manifest
 import android.content.pm.PackageManager
-import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +26,7 @@ private const val TAG = "WifiConnectDemo"
 @Composable
 fun WifiConnectDemoScreen(modifier: Modifier = Modifier, wifiViewModel: WifiViewModel) {
     val context = LocalContext.current
+    // 这里的 collectAsStateWithLifecycle 会自动处理页面可见性，控制底层监听的注册/注销
     val wifiStatus by wifiViewModel.wifiStatus.collectAsStateWithLifecycle()
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
@@ -35,19 +35,11 @@ fun WifiConnectDemoScreen(modifier: Modifier = Modifier, wifiViewModel: WifiView
         val granted = permissions.entries.all { it.value }
         if (granted) {
             Log.d(TAG, "Location permissions granted.")
-            wifiViewModel.updateWifiStatus() // Update status after permissions are granted
+            // 权限通过后，踹一脚 ViewModel 让 UseCase 重新拿一次 SSID
+            wifiViewModel.updateWifiStatus()
         } else {
             Log.d(TAG, "Location permissions denied.")
-            wifiViewModel.updateWifiStatus() // Update status to reflect denial
-        }
-    }
-
-    DisposableEffect(wifiViewModel) {
-        // Initial check and update
-        wifiViewModel.updateWifiStatus()
-        onDispose {
-            // No explicit dispose needed here as start/stop listening is in MainActivity lifecycle.
-            // This DisposableEffect is primarily for initial status update and observing.
+            wifiViewModel.updateWifiStatus()
         }
     }
 
@@ -57,9 +49,10 @@ fun WifiConnectDemoScreen(modifier: Modifier = Modifier, wifiViewModel: WifiView
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Wi-Fi Status: $wifiStatus",
+            text = wifiStatus, // 直接显示状态
             modifier = Modifier.padding(16.dp)
         )
+
         Button(
             onClick = {
                 Log.d(TAG, "Request Permissions button clicked.")
@@ -75,13 +68,14 @@ fun WifiConnectDemoScreen(modifier: Modifier = Modifier, wifiViewModel: WifiView
                     requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
                 } else {
                     Log.d(TAG, "All required location permissions already granted.")
-                    wifiViewModel.updateWifiStatus() // Force update if already granted
+                    wifiViewModel.updateWifiStatus()
                 }
             },
             modifier = Modifier.padding(8.dp)
         ) {
             Text("Request Wi-Fi Permissions")
         }
+
         Button(
             onClick = {
                 Log.d(TAG, "Go to Wi-Fi Settings button clicked.")
